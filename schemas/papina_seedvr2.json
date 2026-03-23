@@ -2,18 +2,52 @@
     "url": "https://replicate.com/papina/seedvr2",
     "owner": "papina",
     "name": "seedvr2",
-    "description": null,
+    "description": "🔥 SeedVR2: one-step video & image restoration with 7B and Adjustable Resolution",
     "visibility": "public",
-    "github_url": null,
-    "paper_url": null,
-    "license_url": null,
+    "github_url": "https://github.com/trustypangolin/cog-ByteDance-Seed-SeedVR2",
+    "paper_url": "https://arxiv.org/abs/2506.05301",
+    "license_url": "https://github.com/trustypangolin/cog-ByteDance-Seed-SeedVR2/blob/main/LICENSE",
     "run_count": 0,
-    "cover_image_url": null,
-    "default_example": null,
+    "cover_image_url": "https://replicate.delivery/xezq/KeenVfBSAeyOYQiBGCeHeP9spmwDY0OrSazCKD3udkk3MA5kF/output_d0ac0f79f8414e75beb691211a3a0c28.png",
+    "default_example": {
+        "id": "pbm731nz8nrmr0cx30mtrzgt5w",
+        "model": "papina/seedvr2",
+        "version": "182716ebbdd44310da62329469d11a308d93e128488f541d8b2b312a4370aa30",
+        "status": "succeeded",
+        "input": {
+            "fps": 24,
+            "seed": -1,
+            "media": "https://replicate.delivery/pbxt/OnQpo5PtsoffsZLAQuHENssujNXsjyvo9gQNXheqBWAqVBkW/waterdragon-small.png",
+            "sp_size": 1,
+            "cfg_scale": 1,
+            "resolution": 1080,
+            "sample_steps": 1,
+            "model_variant": "7b",
+            "output_format": "png",
+            "max_resolution": 3840,
+            "output_quality": 90,
+            "apply_color_fix": false
+        },
+        "output": "https://replicate.delivery/xezq/KeenVfBSAeyOYQiBGCeHeP9spmwDY0OrSazCKD3udkk3MA5kF/output_d0ac0f79f8414e75beb691211a3a0c28.png",
+        "logs": "EulerSampler:   0%|          | 0/1 [00:00<?, ?it/s]\nEulerSampler: 100%|██████████| 1/1 [00:01<00:00,  1.08s/it]\nEulerSampler: 100%|██████████| 1/1 [00:01<00:00,  1.08s/it]",
+        "error": null,
+        "metrics": {
+            "predict_time": 3.229790779,
+            "total_time": 113.384752106
+        },
+        "created_at": "2026-03-23T00:48:02.373000Z",
+        "started_at": "2026-03-23T00:49:52.527961Z",
+        "completed_at": "2026-03-23T00:49:55.757752Z",
+        "urls": {
+            "stream": "https://stream.replicate.com/v1/files/jbxs-diwugdbv2fv5m7mitz7hwjqqu6pkzt25gmh5ys4jgpbqwfgezr5a",
+            "get": "https://api.replicate.com/v1/predictions/pbm731nz8nrmr0cx30mtrzgt5w",
+            "cancel": "https://api.replicate.com/v1/predictions/pbm731nz8nrmr0cx30mtrzgt5w/cancel"
+        }
+    },
     "latest_version": {
-        "id": "f658520505e3093681bba7f92fb035006919270cf6111c81a46b1c442749fb7d",
-        "created_at": "2026-03-20T03:53:25.039011+00:00",
-        "cog_version": "0.16.12",
+        "id": "182716ebbdd44310da62329469d11a308d93e128488f541d8b2b312a4370aa30",
+        "created_at": "2026-03-21T13:53:24.639670+00:00",
+        "cog_version": "0.9.8",
         "openapi_schema": {
             "info": {
                 "title": "Cog",
@@ -42,9 +76,9 @@
                             "seed": {
                                 "type": "integer",
                                 "title": "Seed",
+                                "default": -1,
                                 "x-order": 5,
-                                "nullable": true,
-                                "description": "Random seed. Leave blank for a random seed each call."
+                                "description": "Random seed. Use -1 for random seed each call."
                             },
                             "media": {
                                 "type": "string",
@@ -105,14 +139,14 @@
                                         "$ref": "#/components/schemas/output_format"
                                     }
                                 ],
-                                "default": "webp",
+                                "default": "png",
                                 "x-order": 6,
                                 "description": "Image output format (only used for image inputs)."
                             },
                             "max_resolution": {
                                 "type": "integer",
                                 "title": "Max Resolution",
-                                "default": 0,
+                                "default": 3840,
                                 "maximum": 16384,
                                 "minimum": 0,
                                 "x-order": 11,
@@ -166,7 +200,6 @@
                     },
                     "model_variant": {
                         "enum": [
-                            "3b",
                             "7b"
                         ],
                         "type": "string",
@@ -222,39 +255,26 @@
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "title": "Id",
-                                "nullable": true
+                                "title": "Id"
                             },
                             "input": {
-                                "$ref": "#/components/schemas/Input",
-                                "nullable": true
-                            },
-                            "context": {
-                                "type": "object",
-                                "title": "Context",
-                                "nullable": true,
-                                "additionalProperties": {
-                                    "type": "string"
-                                }
+                                "$ref": "#/components/schemas/Input"
                             },
                             "webhook": {
                                 "type": "string",
                                 "title": "Webhook",
                                 "format": "uri",
-                                "nullable": true,
                                 "maxLength": 65536,
                                 "minLength": 1
                             },
                             "created_at": {
                                 "type": "string",
                                 "title": "Created At",
-                                "format": "date-time",
-                                "nullable": true
+                                "format": "date-time"
                             },
                             "output_file_prefix": {
                                 "type": "string",
-                                "title": "Output File Prefix",
-                                "nullable": true
+                                "title": "Output File Prefix"
                             },
                             "webhook_events_filter": {
                                 "type": "array",
@@ -266,8 +286,7 @@
                                     "output",
                                     "logs",
                                     "completed"
-                                ],
-                                "nullable": true
+                                ]
                             }
                         }
                     },
@@ -277,8 +296,7 @@
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "title": "Id",
-                                "nullable": true
+                                "title": "Id"
                             },
                             "logs": {
                                 "type": "string",
@@ -287,48 +305,39 @@
                             },
                             "error": {
                                 "type": "string",
-                                "title": "Error",
-                                "nullable": true
+                                "title": "Error"
                             },
                             "input": {
-                                "$ref": "#/components/schemas/Input",
-                                "nullable": true
+                                "$ref": "#/components/schemas/Input"
                             },
                             "output": {
                                 "$ref": "#/components/schemas/Output"
                             },
                             "status": {
-                                "$ref": "#/components/schemas/Status",
-                                "nullable": true
+                                "$ref": "#/components/schemas/Status"
                             },
                             "metrics": {
                                 "type": "object",
-                                "title": "Metrics",
-                                "nullable": true,
-                                "additionalProperties": true
+                                "title": "Metrics"
                             },
                             "version": {
                                 "type": "string",
-                                "title": "Version",
-                                "nullable": true
+                                "title": "Version"
                             },
                             "created_at": {
                                 "type": "string",
                                 "title": "Created At",
-                                "format": "date-time",
-                                "nullable": true
+                                "format": "date-time"
                             },
                             "started_at": {
                                 "type": "string",
                                 "title": "Started At",
-                                "format": "date-time",
-                                "nullable": true
+                                "format": "date-time"
                             },
                             "completed_at": {
                                 "type": "string",
                                 "title": "Completed At",
-                                "format": "date-time",
-                                "nullable": true
+                                "format": "date-time"
                             }
                         }
                     },

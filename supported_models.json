@@ -1,18 +1,24 @@
 {
   "models": [
-    "black-forest-labs/flux-1.1-pro",
-    "black-forest-labs/flux-2-pro",
     "black-forest-labs/flux-2-klein-9b",
     "black-forest-labs/flux-2-max",
-    "black-forest-labs/flux-dev",
-    "black-forest-labs/flux-pro",
-    "black-forest-labs/flux-schnell",
+    "black-forest-labs/flux-2-pro",
+    "papina/seedvr2",
+    "philz1337x/crystal-upscaler",
+    "sczhou/codeformer",
+    "tencentarc/gfpgan",
     "topazlabs/image-upscale",
     "zsxkib/realistic-voice-cloning",
-    "sczhou/codeformer",
-    "philz1337x/crystal-upscaler",
-    "tencentarc/gfpgan",
-    "zsxkib/seedvr2",
-    "papina/seedvr2"
-  ]
+    "zsxkib/seedvr2"
+  ],
+  "max_images": {
+    "black-forest-labs/flux-2-klein-9b": 5,
+    "black-forest-labs/flux-2-max": 8,
+    "black-forest-labs/flux-2-pro": 8
+  },
+  "array_input_fields": {
+    "black-forest-labs/flux-2-klein-9b": "images",
+    "black-forest-labs/flux-2-max": "input_images",
+    "black-forest-labs/flux-2-pro": "input_images"
+  }
 }
