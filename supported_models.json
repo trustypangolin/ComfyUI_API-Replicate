@@ -1,0 +1,18 @@
+{
+  "models": [
+    "black-forest-labs/flux-1.1-pro",
+    "black-forest-labs/flux-2-pro",
+    "black-forest-labs/flux-2-klein-9b",
+    "black-forest-labs/flux-2-max",
+    "black-forest-labs/flux-dev",
+    "black-forest-labs/flux-pro",
+    "black-forest-labs/flux-schnell",
+    "topazlabs/image-upscale",
+    "zsxkib/realistic-voice-cloning",
+    "sczhou/codeformer",
+    "philz1337x/crystal-upscaler",
+    "tencentarc/gfpgan",
+    "zsxkib/seedvr2",
+    "papina/seedvr2"
+  ]
+}

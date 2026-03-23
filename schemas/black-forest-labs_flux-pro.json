@@ -1,0 +1,383 @@
+{
+    "url": "https://replicate.com/black-forest-labs/flux-pro",
+    "owner": "black-forest-labs",
+    "name": "flux-pro",
+    "description": "State-of-the-art image generation with top of the line prompt following, visual quality, image detail and output diversity.",
+    "visibility": "public",
+    "github_url": null,
+    "paper_url": null,
+    "license_url": "https://replicate.com/black-forest-labs/flux-pro#license",
+    "run_count": 0,
+    "cover_image_url": "https://tjzk.replicate.delivery/models_models_cover_image/a36275e2-34d4-4b3d-83cd-f9aaf73c9386/https___replicate.delive_o40qpZl.webp",
+    "default_example": {
+        "id": "kg1krwsdf9rg80ch1sgsrgq7h8",
+        "model": "black-forest-labs/flux-pro",
+        "version": "hidden",
+        "status": "succeeded",
+        "input": {
+            "steps": 25,
+            "width": 1024,
+            "height": 1024,
+            "prompt": "The world's largest black forest cake, the size of a building, surrounded by trees of the black forest",
+            "guidance": 3,
+            "interval": 2,
+            "safety_tolerance": 2
+        },
+        "output": "https://bflapistorage.blob.core.windows.net/public/c8145aa6e5894cbd815d6ce708fea9f2/sample.jpg",
+        "logs": null,
+        "error": null,
+        "metrics": {
+            "image_count": 1,
+            "predict_time": 14.093671466,
+            "total_time": 14.102014
+        },
+        "created_at": "2024-08-01T14:38:55.354000Z",
+        "started_at": "2024-08-01T14:38:55.362343Z",
+        "completed_at": "2024-08-01T14:39:09.456014Z",
+        "urls": {
+            "get": "https://api.replicate.com/v1/predictions/kg1krwsdf9rg80ch1sgsrgq7h8",
+            "cancel": "https://api.replicate.com/v1/predictions/kg1krwsdf9rg80ch1sgsrgq7h8/cancel"
+        }
+    },
+    "latest_version": {
+        "id": "ce4035b99fc7bac18bc2f0384632858f126f6b4d96c88603a898a76b8e0c4ac2",
+        "created_at": "2025-11-10T19:32:53.303205+00:00",
+        "cog_version": "0.16.8",
+        "openapi_schema": {
+            "info": {
+                "title": "Cog",
+                "version": "0.1.0"
+            },
+            "paths": {},
+            "openapi": "3.0.2",
+            "components": {
+                "schemas": {
+                    "Input": {
+                        "type": "object",
+                        "title": "Input",
+                        "required": [
+                            "prompt"
+                        ],
+                        "properties": {
+                            "seed": {
+                                "type": "integer",
+                                "title": "Seed",
+                                "description": "Random seed. Set for reproducible generation"
+                            },
+                            "steps": {
+                                "type": "integer",
+                                "title": "Steps",
+                                "default": 25,
+                                "maximum": 50,
+                                "minimum": 1,
+                                "deprecated": true,
+                                "description": "Deprecated"
+                            },
+                            "width": {
+                                "type": "integer",
+                                "title": "Width",
+                                "maximum": 1440,
+                                "minimum": 256,
+                                "description": "Width of the generated image in text-to-image mode. Only used when aspect_ratio=custom. Must be a multiple of 32 (if it's not, it will be rounded to nearest multiple of 32). Note: Ignored in img2img and inpainting modes."
+                            },
+                            "height": {
+                                "type": "integer",
+                                "title": "Height",
+                                "maximum": 1440,
+                                "minimum": 256,
+                                "description": "Height of the generated image in text-to-image mode. Only used when aspect_ratio=custom. Must be a multiple of 32 (if it's not, it will be rounded to nearest multiple of 32). Note: Ignored in img2img and inpainting modes."
+                            },
+                            "prompt": {
+                                "type": "string",
+                                "title": "Prompt",
+                                "description": "Text prompt for image generation"
+                            },
+                            "guidance": {
+                                "type": "number",
+                                "title": "Guidance",
+                                "default": 3,
+                                "maximum": 5,
+                                "minimum": 2,
+                                "description": "Controls the balance between adherence to the text prompt and image quality/diversity. Higher values make the output more closely match the prompt but may reduce overall image quality. Lower values allow for more creative freedom but might produce results less relevant to the prompt."
+                            },
+                            "interval": {
+                                "type": "number",
+                                "title": "Interval",
+                                "default": 2,
+                                "maximum": 4,
+                                "minimum": 1,
+                                "deprecated": true,
+                                "description": "Deprecated"
+                            },
+                            "aspect_ratio": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/aspect_ratio"
+                                    }
+                                ],
+                                "default": "1:1",
+                                "x-order": 2,
+                                "description": "Aspect ratio for the generated image"
+                            },
+                            "image_prompt": {
+                                "type": "string",
+                                "title": "Image Prompt",
+                                "format": "uri",
+                                "description": "Image to use with Flux Redux. This is used together with the text prompt to guide the generation towards the composition of the image_prompt. Must be jpeg, png, gif, or webp."
+                            },
+                            "output_format": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/output_format"
+                                    }
+                                ],
+                                "default": "webp",
+                                "x-order": 8,
+                                "description": "Format of the output images."
+                            },
+                            "output_quality": {
+                                "type": "integer",
+                                "title": "Output Quality",
+                                "default": 80,
+                                "maximum": 100,
+                                "minimum": 0,
+                                "description": "Quality when saving the output images, from 0 to 100. 100 is best quality, 0 is lowest quality. Not relevant for .png outputs"
+                            },
+                            "safety_tolerance": {
+                                "type": "integer",
+                                "title": "Safety Tolerance",
+                                "default": 2,
+                                "maximum": 6,
+                                "minimum": 1,
+                                "description": "Safety tolerance, 1 is most strict and 6 is most permissive"
+                            },
+                            "prompt_upsampling": {
+                                "type": "boolean",
+                                "title": "Prompt Upsampling",
+                                "default": false,
+                                "description": "Automatically modify the prompt for more creative generation"
+                            }
+                        }
+                    },
+                    "Output": {
+                        "type": "string",
+                        "title": "Output",
+                        "format": "uri"
+                    },
+                    "Status": {
+                        "enum": [
+                            "starting",
+                            "processing",
+                            "succeeded",
+                            "canceled",
+                            "failed"
+                        ],
+                        "type": "string",
+                        "title": "Status",
+                        "description": "An enumeration."
+                    },
+                    "WebhookEvent": {
+                        "enum": [
+                            "start",
+                            "output",
+                            "logs",
+                            "completed"
+                        ],
+                        "type": "string",
+                        "title": "WebhookEvent",
+                        "description": "An enumeration."
+                    },
+                    "aspect_ratio": {
+                        "enum": [
+                            "custom",
+                            "1:1",
+                            "16:9",
+                            "3:2",
+                            "2:3",
+                            "4:5",
+                            "5:4",
+                            "9:16",
+                            "3:4",
+                            "4:3"
+                        ],
+                        "type": "string",
+                        "title": "aspect_ratio",
+                        "description": "An enumeration."
+                    },
+                    "output_format": {
+                        "enum": [
+                            "webp",
+                            "jpg",
+                            "png"
+                        ],
+                        "type": "string",
+                        "title": "output_format",
+                        "description": "An enumeration."
+                    },
+                    "ValidationError": {
+                        "type": "object",
+                        "title": "ValidationError",
+                        "required": [
+                            "loc",
+                            "msg",
+                            "type"
+                        ],
+                        "properties": {
+                            "loc": {
+                                "type": "array",
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "integer"
+                                        }
+                                    ]
+                                },
+                                "title": "Location"
+                            },
+                            "msg": {
+                                "type": "string",
+                                "title": "Message"
+                            },
+                            "type": {
+                                "type": "string",
+                                "title": "Error Type"
+                            }
+                        }
+                    },
+                    "PredictionRequest": {
+                        "type": "object",
+                        "title": "PredictionRequest",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Id",
+                                "nullable": true
+                            },
+                            "input": {
+                                "$ref": "#/components/schemas/Input",
+                                "nullable": true
+                            },
+                            "context": {
+                                "type": "object",
+                                "title": "Context",
+                                "nullable": true,
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "webhook": {
+                                "type": "string",
+                                "title": "Webhook",
+                                "format": "uri",
+                                "nullable": true,
+                                "maxLength": 65536,
+                                "minLength": 1
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "title": "Created At",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "output_file_prefix": {
+                                "type": "string",
+                                "title": "Output File Prefix",
+                                "nullable": true
+                            },
+                            "webhook_events_filter": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/WebhookEvent"
+                                },
+                                "default": [
+                                    "start",
+                                    "output",
+                                    "logs",
+                                    "completed"
+                                ],
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "PredictionResponse": {
+                        "type": "object",
+                        "title": "PredictionResponse",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Id",
+                                "nullable": true
+                            },
+                            "logs": {
+                                "type": "string",
+                                "title": "Logs",
+                                "default": ""
+                            },
+                            "error": {
+                                "type": "string",
+                                "title": "Error",
+                                "nullable": true
+                            },
+                            "input": {
+                                "$ref": "#/components/schemas/Input",
+                                "nullable": true
+                            },
+                            "output": {
+                                "$ref": "#/components/schemas/Output"
+                            },
+                            "status": {
+                                "$ref": "#/components/schemas/Status",
+                                "nullable": true
+                            },
+                            "metrics": {
+                                "type": "object",
+                                "title": "Metrics",
+                                "nullable": true,
+                                "additionalProperties": true
+                            },
+                            "version": {
+                                "type": "string",
+                                "title": "Version",
+                                "nullable": true
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "title": "Created At",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "started_at": {
+                                "type": "string",
+                                "title": "Started At",
+                                "format": "date-time",
+                                "nullable": true
+                            },
+                            "completed_at": {
+                                "type": "string",
+                                "title": "Completed At",
+                                "format": "date-time",
+                                "nullable": true
+                            }
+                        }
+                    },
+                    "HTTPValidationError": {
+                        "type": "object",
+                        "title": "HTTPValidationError",
+                        "properties": {
+                            "detail": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                },
+                                "title": "Detail"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
