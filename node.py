@@ -39,7 +39,7 @@ def create_comfyui_node(schema):
             else (return_type,)
         )
         FUNCTION = "run_replicate_model"
-        CATEGORY = "Replicate"
+        CATEGORY = "🎨 API Replicate"
 
         def convert_input_images_to_base64(self, kwargs):
             for key, value in kwargs.items():
