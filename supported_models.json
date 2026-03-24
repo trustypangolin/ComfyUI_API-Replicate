@@ -1,8 +1,8 @@
 {
   "models": [
-    "black-forest-labs/flux-2-pro",
     "black-forest-labs/flux-2-klein-9b",
     "black-forest-labs/flux-2-max",
+    "black-forest-labs/flux-2-pro",
     "papina/seedvr2",
     "philz1337x/crystal-upscaler",
     "sczhou/codeformer",
@@ -10,5 +10,10 @@
     "topazlabs/image-upscale",
     "zsxkib/realistic-voice-cloning",
     "zsxkib/seedvr2"
-  ]
+  ],
+  "max_images": {
+    "black-forest-labs/flux-2-klein-9b": 5,
+    "black-forest-labs/flux-2-max": 8,
+    "black-forest-labs/flux-2-pro": 8
+  }
 }
