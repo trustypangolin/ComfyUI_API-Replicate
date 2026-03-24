@@ -19,11 +19,13 @@ import os
 def get_max_images(model_name):
     """Get the max_images setting for a model from supported_models.json."""
     config_path = os.path.join(os.path.dirname(__file__), "supported_models.json")
+    # Extract model name without version hash (e.g., "owner/name:version" -> "owner/name")
+    model_base = model_name.split(":")[0] if ":" in model_name else model_name
     try:
         with open(config_path, "r") as f:
             config = json.load(f)
             max_images = config.get("max_images", {})
-            return max_images.get(model_name, 0)  # Default to 0 (optional, single image)
+            return max_images.get(model_base, 0)  # Default to 0 (optional, single image)
     except (FileNotFoundError, json.JSONDecodeError):
         return 0
 
