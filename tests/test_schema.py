@@ -3,11 +3,12 @@ import os
 import sys
 import traceback
 
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Get this package's directory (the parent of the tests folder)
+package_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, package_dir)
 
 try:
-    from ..schema_to_node import schema_to_comfyui_input_types, get_return_type
+    from schema_to_node import schema_to_comfyui_input_types, get_return_type
 except Exception as e:
     print(f"Error importing schema_to_node: {e}")
     traceback.print_exc()
