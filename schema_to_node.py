@@ -12,6 +12,23 @@ TYPE_MAPPING = {
     "boolean": "BOOLEAN",
 }
 
+# Load max_images configuration from supported_models.json
+import json
+import os
+
+def get_max_images(model_name):
+    """Get the max_images setting for a model from supported_models.json."""
+    config_path = os.path.join(os.path.dirname(__file__), "supported_models.json")
+    # Extract model name without version hash (e.g., "owner/name:version" -> "owner/name")
+    model_base = model_name.split(":")[0] if ":" in model_name else model_name
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+            max_images = config.get("max_images", {})
+            return max_images.get(model_base, 0)  # Default to 0 (optional, single image)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return 0
+
 
 def convert_to_comfyui_input_type(
     input_name, openapi_type, openapi_format=None, default_example_input=None, items_type=None, items_format=None
@@ -77,6 +94,10 @@ def schema_to_comfyui_input_types(schema):
 
     required_props = input_schema.get("required", [])
 
+    # Get the model name for max_images lookup
+    replicate_model, _ = name_and_version(schema)
+    max_images = get_max_images(replicate_model)
+
     for prop_name, prop_data in input_schema["properties"].items():
         prop_data = resolve_schema(prop_data, openapi_schema)
         default_value = prop_data.get("default", None)
@@ -130,6 +151,9 @@ def schema_to_comfyui_input_types(schema):
 
     input_types["optional"]["force_rerun"] = ("BOOLEAN", {"default": False})
 
+    # Handle array inputs with max item count - split into individual optional inputs
+    input_types = handle_array_inputs_as_multiple(input_types, input_schema, max_images)
+
     return order_inputs(input_types, input_schema)
 
 
@@ -150,11 +174,64 @@ def order_inputs(input_types, input_schema):
                 prop_name
             ]
 
+    # Also add any new inputs created by handle_array_inputs_as_multiple
+    # (these have numeric suffixes like image_1, image_2, etc.)
+    for prop_name in input_types["optional"]:
+        if prop_name not in ordered_input_types["optional"]:
+            ordered_input_types["optional"][prop_name] = input_types["optional"][
+                prop_name
+            ]
+
     ordered_input_types["optional"]["force_rerun"] = input_types["optional"][
         "force_rerun"
     ]
 
     return ordered_input_types
+
+
+def handle_array_inputs_as_multiple(input_types, input_schema, max_images=0):
+    """
+    Handle array inputs that should be converted to multiple optional inputs.
+    
+    For example, if there's an 'images' array input with max_images = 5,
+    convert it to 5 optional IMAGE inputs: image_1, image_2, image_3, image_4, image_5.
+    
+    If max_images is 0, the array is treated as a single optional IMAGE input (not split).
+    """
+    if not input_schema or "properties" not in input_schema or max_images == 0:
+        return input_types
+    
+    properties = input_schema["properties"]
+    
+    # Find array inputs that might need to be split into multiple IMAGE inputs
+    for prop_name, prop_data in properties.items():
+        if prop_data.get("type") == "array" and "items" in prop_data:
+            items = prop_data["items"]
+            
+            # Check if it's a string array (like image URLs)
+            if items.get("type") == "string":
+                # Check if this is an image-related array
+                if any(x in prop_name.lower() for x in ["image", "mask"]):
+                    # Convert to multiple optional IMAGE inputs
+                    # Remove from required/optional
+                    if prop_name in input_types["required"]:
+                        del input_types["required"][prop_name]
+                    if prop_name in input_types["optional"]:
+                        del input_types["optional"][prop_name]
+                    
+                    # Create a base name for the individual image inputs
+                    # e.g., "images" -> "image", "image_urls" -> "image_url"
+                    base_name = prop_name.replace("images", "image")
+                    base_name = base_name.replace("urls", "url").replace("_url", "")
+                    
+                    # Add optional IMAGE inputs for each item
+                    for i in range(1, max_images + 1):
+                        input_name = f"{base_name}_{i}"
+                        input_types["optional"][input_name] = ("IMAGE", {})
+                    
+                    break
+    
+    return input_types
 
 
 def inputs_that_need_arrays(schema):

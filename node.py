@@ -15,9 +15,24 @@ from .schema_to_node import (
     get_return_type,
     name_and_version,
     inputs_that_need_arrays,
+    get_max_images,
+    get_array_input_mapping,
 )
 
 replicate = Client(headers={"User-Agent": "comfyui-replicate/1.0.1"})
+
+
+def convert_to_json_serializable(obj):
+    """Convert objects to JSON serializable format (e.g., tensors to lists)."""
+    if isinstance(obj, torch.Tensor):
+        # Return tensor shape info instead of full data for debugging
+        return f"<Tensor shape={list(obj.shape)}, dtype={obj.dtype}>"
+    elif isinstance(obj, dict):
+        return {k: convert_to_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_json_serializable(item) for item in obj]
+    else:
+        return obj
 
 
 def create_comfyui_node(schema):
@@ -37,13 +52,31 @@ def create_comfyui_node(schema):
             tuple(return_type.values())
             if isinstance(return_type, dict)
             else (return_type,)
-        )
+        ) + ("STRING",)  # Add STRING output for the JSON payload
+        RETURN_NAMES = (
+            tuple(return_type.values())
+            if isinstance(return_type, dict)
+            else (return_type,)
+        ) + ("INPUT_JSON",)  # Name for the JSON output
         FUNCTION = "run_replicate_model"
         CATEGORY = "🎨 API Replicate"
 
         def convert_input_images_to_base64(self, kwargs):
             for key, value in kwargs.items():
                 if value is not None:
+                    # Check if value is a tensor - convert regardless of input type mapping
+                    if isinstance(value, torch.Tensor):
+                        kwargs[key] = self.image_to_base64(value)
+                        continue
+                    
+                    # Check if value is a list that may contain tensors
+                    if isinstance(value, list):
+                        # Check if any item is a tensor - if so, convert all items
+                        has_tensor = any(isinstance(item, torch.Tensor) for item in value)
+                        if has_tensor:
+                            kwargs[key] = [self.image_to_base64(item) for item in value]
+                            continue
+                    
                     input_type = (
                         self.INPUT_TYPES()["required"].get(key, (None,))[0]
                         or self.INPUT_TYPES().get("optional", {}).get(key, (None,))[0]
@@ -113,14 +146,44 @@ def create_comfyui_node(schema):
                         kwargs[input_name] = [kwargs[input_name]]
 
         def log_input(self, kwargs):
-            truncated_kwargs = {
-                k: v[:20] + "..."
-                if isinstance(v, str)
-                and (v.startswith("data:image") or v.startswith("data:audio"))
-                else v
-                for k, v in kwargs.items()
-            }
+            def format_value(v):
+                if isinstance(v, torch.Tensor):
+                    return f"<Tensor {list(v.shape)} {v.dtype}>"
+                elif isinstance(v, str) and (v.startswith("data:image") or v.startswith("data:audio")):
+                    return v[:20] + "..."
+                return v
+            
+            truncated_kwargs = {k: format_value(v) for k, v in kwargs.items()}
             print(f"Running {replicate_model} with {truncated_kwargs}")
+
+        def _base64_to_tensor(self, base64_str):
+            """Convert a base64 image string to a tensor."""
+            if not base64_str or not isinstance(base64_str, str):
+                print(f"DEBUG: _base64_to_tensor received invalid input: {type(base64_str)}")
+                return None
+            try:
+                # Extract base64 content from data URL
+                if "," in base64_str:
+                    base64_data = base64_str.split(",", 1)[1]
+                else:
+                    base64_data = base64_str
+                
+                image_data = base64.b64decode(base64_data, validate=True)
+                image = Image.open(BytesIO(image_data))
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+                
+                transform = transforms.ToTensor()
+                tensor_image = transform(image)
+                tensor_image = tensor_image.unsqueeze(0)
+                tensor_image = tensor_image.permute(0, 2, 3, 1).cpu().float()
+                print(f"DEBUG: _base64_to_tensor success: shape={tensor_image.shape}")
+                return tensor_image
+            except Exception as e:
+                print(f"Error converting base64 to tensor: {e}")
+                import traceback
+                traceback.print_exc()
+                return None
 
         def handle_image_output(self, output):
             if output is None:
@@ -184,19 +247,117 @@ def create_comfyui_node(schema):
             for key in list(kwargs.keys()):
                 if key in optional_inputs:
                     if isinstance(kwargs[key], torch.Tensor):
-                        continue
+                        # Keep tensors with elements, delete empty tensors
+                        if kwargs[key].numel() == 0:
+                            del kwargs[key]
                     elif not kwargs[key]:
                         del kwargs[key]
 
+        def combine_split_image_inputs(self, kwargs, replicate_model):
+            """
+            Combine split image inputs (image_1, image_2, etc.) back into arrays.
+            
+            This is needed because schema_to_node.py splits image arrays into
+            individual inputs for ComfyUI, but the Replicate API expects arrays.
+            """
+            # Get model base name (without version hash)
+            model_base = replicate_model.split(":")[0] if ":" in replicate_model else replicate_model
+            
+            # Get max_images for this model
+            max_images = get_max_images(replicate_model)
+            
+            if max_images == 0:
+                return  # No split inputs to combine
+            
+            # Get the original array input name for this model
+            array_input_name = get_array_input_mapping(replicate_model)
+            if not array_input_name:
+                return
+            
+            # Find all split image inputs (e.g., image_1, image_2, etc.)
+            # or input_image_1, input_image_2, etc.
+            base_name = array_input_name.replace("images", "image").replace("_url", "")
+            
+            split_inputs = []
+            for i in range(1, max_images + 1):
+                input_name = f"{base_name}_{i}"
+                if input_name in kwargs and kwargs[input_name] is not None:
+                    split_inputs.append(kwargs[input_name])
+                    # Remove the individual input
+                    del kwargs[input_name]
+            
+            # If we found any split inputs, combine them into an array
+            if split_inputs:
+                kwargs[array_input_name] = split_inputs
+
         def run_replicate_model(self, **kwargs):
+            # Extract debug flag before processing
+            debug_mode = kwargs.pop("debug", False)
+            
             self.handle_array_inputs(kwargs)
             self.remove_falsey_optional_inputs(kwargs)
+            self.combine_split_image_inputs(kwargs, replicate_model)
             self.convert_input_images_to_base64(kwargs)
             self.log_input(kwargs)
-            kwargs_without_force_rerun = {
-                k: v for k, v in kwargs.items() if k != "force_rerun"
+            
+            # Remove force_rerun from the API call but keep for debug output
+            kwargs_without_special = {
+                k: v for k, v in kwargs.items() if k not in ["force_rerun", "debug"]
             }
-            output = replicate.run(replicate_model, input=kwargs_without_force_rerun)
+            
+            # Convert kwargs to JSON string for output
+            kwargs_for_json = convert_to_json_serializable(kwargs_without_special)
+            input_json = json.dumps(kwargs_for_json, indent=2)
+            
+            if debug_mode:
+                # In debug mode, return the first input image and the JSON payload
+                print(f"DEBUG MODE: Skipping API call, returning input data")
+                print(f"Input JSON: {input_json}")
+                print(f"DEBUG: kwargs_without_special keys: {list(kwargs_without_special.keys())}")
+                
+                # Find the first image input to return and convert to tensor
+                debug_tensor = None
+                for key, value in kwargs_without_special.items():
+                    print(f"DEBUG: checking key={key}, type={type(value)}, value={str(value)[:50] if value else None}")
+                    if isinstance(value, str) and value.startswith("data:image"):
+                        print(f"DEBUG: Found direct image string, converting")
+                        debug_tensor = self._base64_to_tensor(value)
+                        break
+                    elif key in ["image", "images", "input_image", "input_images", "media"]:
+                        print(f"DEBUG: Found image key={key}, processing")
+                        if isinstance(value, list) and value:
+                            print(f"DEBUG: value is list, first element type={type(value[0])}")
+                            debug_tensor = self._base64_to_tensor(value[0])
+                        elif isinstance(value, str) and value:
+                            print(f"DEBUG: value is string, converting")
+                            debug_tensor = self._base64_to_tensor(value)
+                        else:
+                            print(f"DEBUG: value type not handled: {type(value)}")
+                        break
+                
+                print(f"DEBUG: Final debug_tensor: {debug_tensor}")
+                
+                processed_outputs = []
+                if isinstance(return_type, dict):
+                    for prop_name, prop_type in return_type.items():
+                        if prop_type == "IMAGE":
+                            processed_outputs.append(debug_tensor)
+                        elif prop_type == "AUDIO":
+                            processed_outputs.append(None)
+                        else:
+                            processed_outputs.append("")
+                else:
+                    if return_type == "IMAGE":
+                        processed_outputs.append(debug_tensor)
+                    elif return_type == "AUDIO":
+                        processed_outputs.append(None)
+                    else:
+                        processed_outputs.append("")
+                
+                processed_outputs.append(input_json)
+                return tuple(processed_outputs)
+            
+            output = replicate.run(replicate_model, input=kwargs_without_special)
             print(f"Output: {output}")
 
             processed_outputs = []
@@ -222,6 +383,7 @@ def create_comfyui_node(schema):
                 else:
                     processed_outputs.append("".join(list(output)).strip())
 
+            processed_outputs.append(input_json)
             return tuple(processed_outputs)
 
     return node_name, ReplicateToComfyUI
