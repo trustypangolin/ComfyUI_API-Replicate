@@ -30,6 +30,27 @@ def get_max_images(model_name):
         return 0
 
 
+def get_array_input_mapping(model_name):
+    """
+    Get the array input field name for a model from supported_models.json.
+    
+    For example, if a model has an 'images' array input, return "images".
+    Returns None if the model doesn't have array inputs or is not found.
+    """
+    # Extract model name without version hash (e.g., "owner/name:version" -> "owner/name")
+    model_base = model_name.split(":")[0] if ":" in model_name else model_name
+    
+    # Load supported_models.json to get array input field mapping
+    config_path = os.path.join(os.path.dirname(__file__), "supported_models.json")
+    try:
+        with open(config_path, "r") as f:
+            config = json.load(f)
+            array_input_fields = config.get("array_input_fields", {})
+            return array_input_fields.get(model_base)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
 def convert_to_comfyui_input_type(
     input_name, openapi_type, openapi_format=None, default_example_input=None, items_type=None, items_format=None
 ):

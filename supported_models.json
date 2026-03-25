@@ -15,5 +15,10 @@
     "black-forest-labs/flux-2-klein-9b": 5,
     "black-forest-labs/flux-2-max": 8,
     "black-forest-labs/flux-2-pro": 8
+  },
+  "array_input_fields": {
+    "black-forest-labs/flux-2-klein-9b": "images",
+    "black-forest-labs/flux-2-max": "input_images",
+    "black-forest-labs/flux-2-pro": "input_images"
   }
 }
